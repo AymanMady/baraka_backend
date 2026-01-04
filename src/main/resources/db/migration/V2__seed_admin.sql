@@ -1,0 +1,93 @@
+-- =====================================================
+-- Baraka Backend - Seed Data
+-- Version: V2
+-- =====================================================
+
+-- BCrypt hash for "Admin@123" (strength 10)
+-- Insert default admin user
+INSERT INTO users (id, full_name, phone, email, password_hash, role, is_active, created_at)
+VALUES (
+    'a0000000-0000-0000-0000-000000000001',
+    'Baraka Admin',
+    '+22900000001',
+    'admin@baraka.app',
+    '$2a$10$LqGh7.N7tmR6X7yJvQdQr.VqQYWnLF.5S9VqJT6J5YxX7V5Y5KQWC',
+    'ADMIN',
+    true,
+    NOW()
+);
+
+-- BCrypt hash for "Merchant@123" (strength 10)
+-- Insert a sample merchant user (for testing)
+INSERT INTO users (id, full_name, phone, email, password_hash, role, is_active, created_at)
+VALUES (
+    'a0000000-0000-0000-0000-000000000002',
+    'Merchant Demo',
+    '+22900000002',
+    'merchant@baraka.app',
+    '$2a$10$LqGh7.N7tmR6X7yJvQdQr.VqQYWnLF.5S9VqJT6J5YxX7V5Y5KQWC',
+    'MERCHANT',
+    true,
+    NOW()
+);
+
+-- BCrypt hash for "Customer@123" (strength 10)
+-- Insert a sample customer user (for testing)
+INSERT INTO users (id, full_name, phone, email, password_hash, role, is_active, created_at)
+VALUES (
+    'a0000000-0000-0000-0000-000000000003',
+    'Customer Demo',
+    '+22900000003',
+    'customer@baraka.app',
+    '$2a$10$LqGh7.N7tmR6X7yJvQdQr.VqQYWnLF.5S9VqJT6J5YxX7V5Y5KQWC',
+    'CUSTOMER',
+    true,
+    NOW()
+);
+
+-- Insert a sample shop for the merchant
+INSERT INTO shops (id, name, description, phone, address, city, country, latitude, longitude, status, created_by, created_at)
+VALUES (
+    'b0000000-0000-0000-0000-000000000001',
+    'Boulangerie Demo',
+    'Une boulangerie artisanale proposant des paniers surprise de viennoiseries et pains du jour.',
+    '+22900000010',
+    '123 Rue de la Paix',
+    'Cotonou',
+    'Benin',
+    6.3703,
+    2.3912,
+    'ACTIVE',
+    'a0000000-0000-0000-0000-000000000002',
+    NOW()
+);
+
+-- Insert a sample basket for the shop
+INSERT INTO baskets (id, shop_id, title, description, price_original, price_discount, currency, quantity_total, quantity_left, pickup_start, pickup_end, status, created_at)
+VALUES (
+    'c0000000-0000-0000-0000-000000000001',
+    'b0000000-0000-0000-0000-000000000001',
+    'Panier Viennoiseries Surprise',
+    'Un assortiment de croissants, pains au chocolat et autres délices de la journée.',
+    5000.00,
+    2500.00,
+    'XOF',
+    10,
+    10,
+    NOW() + INTERVAL '1 hour',
+    NOW() + INTERVAL '6 hours',
+    'PUBLISHED',
+    NOW()
+);
+
+-- Welcome notification for admin
+INSERT INTO notifications (id, user_id, title, body, type, is_read, created_at)
+VALUES (
+    'd0000000-0000-0000-0000-000000000001',
+    'a0000000-0000-0000-0000-000000000001',
+    'Bienvenue sur Baraka!',
+    'Votre compte administrateur a été créé avec succès. Vous pouvez maintenant gérer la plateforme.',
+    'SYSTEM',
+    false,
+    NOW()
+);

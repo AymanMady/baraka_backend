@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: baraka-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-baraka_db}
+      POSTGRES_USER: ${POSTGRES_USER:-baraka_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-baraka_password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-baraka_user} -d ${POSTGRES_DB:-baraka_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - baraka-network
+
+  # Spring Boot Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: baraka-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Spring Profile
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      
+      # Database Configuration
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-baraka_db}
+      DATABASE_USERNAME: ${POSTGRES_USER:-baraka_user}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-baraka_password}
+      
+      # JWT Configuration
+      JWT_SECRET: ${JWT_SECRET:-dGhpc2lzYXZlcnlsb25nc2VjcmV0a2V5Zm9yand0dG9rZW5zaWduaW5nYmFyYWthYXBw}
+      
+      # Business Configuration
+      CANCEL_CUTOFF_MINUTES: ${CANCEL_CUTOFF_MINUTES:-30}
+      
+      # JVM Options (optional override)
+      JAVA_OPTS: ${JAVA_OPTS:--Xmx512m -Xms256m}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    networks:
+      - baraka-network
+
+  # PgAdmin (optional - for database management)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: baraka-pgadmin
+    restart: unless-stopped
+    profiles:
+      - tools
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@baraka.tech}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - baraka-network
+
+networks:
+  baraka-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
