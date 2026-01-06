@@ -71,16 +71,16 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
-        log.info("Login attempt for email: {}", request.getEmail());
+        log.info("Login attempt for phone: {}", request.getPhone());
 
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+                    new UsernamePasswordAuthenticationToken(request.getPhone(), request.getPassword())
             );
 
             UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
 
-            User user = userRepository.findByEmail(request.getEmail())
+            User user = userRepository.findByPhone(request.getPhone())
                     .orElseThrow(() -> new AuthenticationException("Invalid credentials"));
 
             if (!user.getIsActive()) {
@@ -94,8 +94,8 @@ public class AuthService {
             return AuthResponse.of(token, jwtService.getJwtExpiration(), UserDto.from(user));
 
         } catch (BadCredentialsException e) {
-            log.warn("Failed login attempt for email: {}", request.getEmail());
-            throw new AuthenticationException("Invalid email or password");
+            log.warn("Failed login attempt for phone: {}", request.getPhone());
+            throw new AuthenticationException("Invalid phone or password");
         }
     }
 
