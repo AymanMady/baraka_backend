@@ -48,13 +48,20 @@ public class AuthService {
             throw new DuplicateResourceException("User", "phone", request.getPhone());
         }
 
+        // Validate role - only CUSTOMER and MERCHANT allowed during registration
+        UserRole role = request.getRole() != null ? request.getRole() : UserRole.CUSTOMER;
+        if (role == UserRole.ADMIN) {
+            log.warn("Attempt to register with ADMIN role, defaulting to CUSTOMER");
+            role = UserRole.CUSTOMER;
+        }
+
         // Create user
         User user = User.builder()
                 .fullName(request.getFullName())
                 .phone(request.getPhone())
                 .email(request.getEmail())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .role(UserRole.CUSTOMER)
+                .role(role)
                 .isActive(true)
                 .build();
 

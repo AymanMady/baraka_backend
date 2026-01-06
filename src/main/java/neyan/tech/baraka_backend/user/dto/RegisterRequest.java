@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import neyan.tech.baraka_backend.user.entity.UserRole;
 
 @Data
 @Builder
@@ -30,5 +31,10 @@ public class RegisterRequest {
     @NotBlank(message = "Password is required")
     @Size(min = 8, max = 100, message = "Password must be between 8 and 100 characters")
     private String password;
+
+    // Role is optional, defaults to CUSTOMER
+    // Only CUSTOMER and MERCHANT can be set during registration (not ADMIN)
+    @Builder.Default
+    private UserRole role = UserRole.CUSTOMER;
 }
 
