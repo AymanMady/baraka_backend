@@ -38,6 +38,7 @@ public class SecurityConfig {
 
     private static final String[] PUBLIC_ENDPOINTS = {
             "/api/auth/**",
+            "/api/nearby/**",   // Public geo endpoints
             "/api-docs/**",
             "/api-docs.yaml",
             "/v3/api-docs/**",
@@ -60,22 +61,26 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                        // Shop management - MERCHANT and ADMIN
-                        .requestMatchers(HttpMethod.POST, "/api/v1/shops/**").hasAnyRole("MERCHANT", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/shops/**").hasAnyRole("MERCHANT", "ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/shops/**").hasAnyRole("MERCHANT", "ADMIN")
-                        // Basket management - MERCHANT and ADMIN
-                        .requestMatchers(HttpMethod.POST, "/api/v1/baskets/**").hasAnyRole("MERCHANT", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/baskets/**").hasAnyRole("MERCHANT", "ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/baskets/**").hasAnyRole("MERCHANT", "ADMIN")
+                        // Public browsing - GET only for baskets and shops
+                        .requestMatchers(HttpMethod.GET, "/api/baskets/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/shops/**").permitAll()
+                        // Shop management - MERCHANT and ADMIN (POST, PUT, DELETE)
+                        .requestMatchers(HttpMethod.POST, "/api/shops/**").hasAnyRole("MERCHANT", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/shops/**").hasAnyRole("MERCHANT", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/shops/**").hasAnyRole("MERCHANT", "ADMIN")
+                        // Merchant endpoints - require authentication
+                        .requestMatchers("/api/merchant/**").hasAnyRole("MERCHANT", "ADMIN")
                         // Orders - CUSTOMER can create/cancel their own
-                        .requestMatchers(HttpMethod.POST, "/api/v1/orders/**").hasAnyRole("CUSTOMER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/orders/**").hasAnyRole("CUSTOMER", "ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/orders/**").hasAnyRole("CUSTOMER", "ADMIN")
                         // Reviews - CUSTOMER can post
-                        .requestMatchers(HttpMethod.POST, "/api/v1/reviews/**").hasAnyRole("CUSTOMER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/reviews/**").hasAnyRole("CUSTOMER", "ADMIN")
                         // Favorites - CUSTOMER can manage
-                        .requestMatchers("/api/v1/favorites/**").hasAnyRole("CUSTOMER", "ADMIN")
+                        .requestMatchers("/api/favorites/**").hasAnyRole("CUSTOMER", "ADMIN")
+                        // Notifications - authenticated users
+                        .requestMatchers("/api/notifications/**").authenticated()
                         // Admin endpoints
-                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // All other requests need authentication
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
