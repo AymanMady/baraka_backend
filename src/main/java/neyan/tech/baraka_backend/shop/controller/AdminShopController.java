@@ -20,8 +20,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/admin/shops")
 @RequiredArgsConstructor
-@SecurityRequirement(name = "bearerAuth")
-@PreAuthorize("hasRole('ADMIN')")
+// @SecurityRequirement(name = "bearerAuth")
+// @PreAuthorize("hasRole('ADMIN')")
 @Tag(name = "Admin - Shops", description = "Admin shop management endpoints")
 public class AdminShopController {
 
