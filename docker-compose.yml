@@ -40,6 +40,7 @@ services:
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-baraka_password}
       
       # Flyway Configuration (for dev: clean database on startup to re-run seeders)
+      # Set FLYWAY_CLEAN_ON_STARTUP=true and FLYWAY_CLEAN_DISABLED=false to enable auto-clean
       FLYWAY_CLEAN_ON_STARTUP: ${FLYWAY_CLEAN_ON_STARTUP:-false}
       
       # JWT Configuration

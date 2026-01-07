@@ -34,9 +34,12 @@ public class FlywayCleanupConfig {
         return flyway -> {
             // Vérifier que le nettoyage n'est pas désactivé
             if (flywayProperties.isCleanDisabled()) {
-                log.error("❌ FLYWAY_CLEAN_ON_STARTUP is enabled but clean is disabled in configuration!");
-                log.error("❌ Set spring.flyway.clean-disabled=false to allow cleaning");
-                throw new IllegalStateException("Cannot clean database: clean is disabled in configuration");
+                log.warn("⚠️  FLYWAY_CLEAN_ON_STARTUP is enabled but clean is disabled in configuration!");
+                log.warn("⚠️  Skipping database cleanup. Set spring.flyway.clean-disabled=false to enable cleaning");
+                log.info("🔄 Running migrations without cleaning...");
+                flyway.migrate();
+                log.info("✅ Migrations completed successfully");
+                return;
             }
             
             log.warn("⚠️  ⚠️  ⚠️  FLYWAY_CLEAN_ON_STARTUP is enabled - Database will be cleaned before migrations! ⚠️  ⚠️  ⚠️");
