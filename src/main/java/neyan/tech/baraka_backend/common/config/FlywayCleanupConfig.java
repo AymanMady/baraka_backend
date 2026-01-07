@@ -5,29 +5,41 @@ import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
+import org.springframework.boot.autoconfigure.flyway.FlywayProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 
 /**
- * Configuration pour nettoyer automatiquement la base de données au démarrage
- * en mode développement avec Docker.
+ * Configuration pour nettoyer automatiquement la base de données au démarrage.
+ * 
+ * ⚠️ ATTENTION : Cette fonctionnalité nettoie complètement la base de données !
+ * Utilisez-la uniquement en développement, jamais en production !
  * 
  * Activez cette fonctionnalité en définissant FLYWAY_CLEAN_ON_STARTUP=true
+ * et en vous assurant que spring.flyway.clean-disabled=false
  */
 @Slf4j
 @Configuration
 @ConditionalOnProperty(name = "spring.flyway.clean-on-startup", havingValue = "true")
-@Profile("dev")
 public class FlywayCleanupConfig {
 
     @Autowired
     private Flyway flyway;
+    
+    @Autowired
+    private FlywayProperties flywayProperties;
 
     @Bean
     public FlywayMigrationStrategy cleanMigrateStrategy() {
         return flyway -> {
-            log.warn("⚠️  FLYWAY_CLEAN_ON_STARTUP is enabled - Database will be cleaned before migrations!");
+            // Vérifier que le nettoyage n'est pas désactivé
+            if (flywayProperties.isCleanDisabled()) {
+                log.error("❌ FLYWAY_CLEAN_ON_STARTUP is enabled but clean is disabled in configuration!");
+                log.error("❌ Set spring.flyway.clean-disabled=false to allow cleaning");
+                throw new IllegalStateException("Cannot clean database: clean is disabled in configuration");
+            }
+            
+            log.warn("⚠️  ⚠️  ⚠️  FLYWAY_CLEAN_ON_STARTUP is enabled - Database will be cleaned before migrations! ⚠️  ⚠️  ⚠️");
             log.info("🧹 Cleaning database...");
             flyway.clean();
             log.info("✅ Database cleaned successfully");

@@ -111,7 +111,8 @@ spring:
       ddl-auto: validate
 
   flyway:
-    clean-disabled: true
+    clean-disabled: ${FLYWAY_CLEAN_DISABLED:true}
+    clean-on-startup: ${FLYWAY_CLEAN_ON_STARTUP:false}
 
 logging:
   level:
