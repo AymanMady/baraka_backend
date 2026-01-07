@@ -273,7 +273,33 @@ docker-compose down -v
 # Reconstruire l'image après modifications
 docker-compose build --no-cache app
 docker-compose up -d app
+
+# Reconstruire avec nettoyage de la base (réexécute les seeders)
+FLYWAY_CLEAN_ON_STARTUP=true docker-compose up -d --build app
+
+# Ou définir dans un fichier .env
+echo "FLYWAY_CLEAN_ON_STARTUP=true" >> .env
+docker-compose up -d --build app
 ```
+
+### Réexécution automatique des seeders
+
+Pour que les seeders se réexécutent automatiquement à chaque rebuild en mode développement :
+
+```bash
+# Option 1: Variable d'environnement temporaire
+FLYWAY_CLEAN_ON_STARTUP=true docker-compose up -d --build app
+
+# Option 2: Ajouter dans un fichier .env
+echo "FLYWAY_CLEAN_ON_STARTUP=true" >> .env
+docker-compose up -d --build app
+
+# Option 3: Modifier docker-compose.yml directement
+# Définir FLYWAY_CLEAN_ON_STARTUP: true dans la section environment du service app
+```
+
+⚠️ **Attention** : Cette option nettoie complètement la base de données avant d'appliquer les migrations. 
+Utilisez-la uniquement en développement, jamais en production !
 
 ### Accès aux services
 

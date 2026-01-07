@@ -1,10 +1,6 @@
 -- =====================================================
--- Baraka Backend - Seed Data
--- Version: V2
--- 
--- NOTE: This migration is idempotent and can be safely re-executed.
--- For databases that need seed data re-executed on every rebuild,
--- see R__seed_data.sql (repeatable migration).
+-- Baraka Backend - Seed Data (Repeatable Migration)
+-- This migration will be re-executed whenever its content changes
 -- =====================================================
 
 -- BCrypt hash for "Admin@123" (strength 10)
@@ -101,3 +97,4 @@ VALUES (
     NOW()
 )
 ON CONFLICT (id) DO NOTHING;
+

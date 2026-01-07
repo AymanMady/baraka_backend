@@ -41,6 +41,9 @@ services:
       DATABASE_USERNAME: ${POSTGRES_USER:-baraka_user}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-baraka_password}
       
+      # Flyway Configuration (for dev: clean database on startup to re-run seeders)
+      FLYWAY_CLEAN_ON_STARTUP: ${FLYWAY_CLEAN_ON_STARTUP:-false}
+      
       # JWT Configuration
       JWT_SECRET: ${JWT_SECRET:-dGhpc2lzYXZlcnlsb25nc2VjcmV0a2V5Zm9yand0dG9rZW5zaWduaW5nYmFyYWthYXBw}
       
