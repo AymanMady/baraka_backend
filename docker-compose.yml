@@ -42,7 +42,7 @@ services:
       # Flyway Configuration (for dev: clean database on startup to re-run seeders)
       # Set FLYWAY_CLEAN_ON_STARTUP=true and FLYWAY_CLEAN_DISABLED=false to enable auto-clean
       FLYWAY_CLEAN_ON_STARTUP: ${FLYWAY_CLEAN_ON_STARTUP:-false}
-      FLYWAY_CLEAN_DISABLED: ${FLYWAY_CLEAN_DISABLED:-}
+      FLYWAY_CLEAN_DISABLED: ${FLYWAY_CLEAN_DISABLED:-true}
       
       # JWT Configuration
       JWT_SECRET: ${JWT_SECRET:-dGhpc2lzYXZlcnlsb25nc2VjcmV0a2V5Zm9yand0dG9rZW5zaWduaW5nYmFyYWthYXBw}
