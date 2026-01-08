@@ -9,7 +9,7 @@ INSERT INTO users (id, full_name, phone, email, password_hash, role, is_active, 
 VALUES (
     'a0000000-0000-0000-0000-000000000001',
     'Baraka Admin',
-    '20123456',
+    '41974468',
     'admin@baraka.app',
     '$2b$10$rWF/3luhXo8HvwHtjIImnukVULidzaN3PTYDMUWomFaLQQzpxTo9m',
     'ADMIN',
