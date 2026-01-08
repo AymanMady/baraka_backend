@@ -3,7 +3,7 @@
 -- This migration will be re-executed whenever its content changes
 -- =====================================================
 
--- BCrypt hash for "Admin@123" (strength 10)
+-- BCrypt hash for "1234" (strength 10)
 -- Insert default admin user (idempotent: ON CONFLICT DO NOTHING)
 INSERT INTO users (id, full_name, phone, email, password_hash, role, is_active, created_at)
 VALUES (
@@ -11,14 +11,14 @@ VALUES (
     'Baraka Admin',
     '20123456',
     'admin@baraka.app',
-    '$2a$10$LqGh7.N7tmR6X7yJvQdQr.VqQYWnLF.5S9VqJT6J5YxX7V5Y5KQWC',
+    '$2b$10$rWF/3luhXo8HvwHtjIImnukVULidzaN3PTYDMUWomFaLQQzpxTo9m',
     'ADMIN',
     true,
     NOW()
 )
 ON CONFLICT (id) DO NOTHING;
 
--- BCrypt hash for "Merchant@123" (strength 10)
+-- BCrypt hash for "1234" (strength 10)
 -- Insert a sample merchant user (for testing)
 INSERT INTO users (id, full_name, phone, email, password_hash, role, is_active, created_at)
 VALUES (
@@ -26,14 +26,14 @@ VALUES (
     'Merchant Demo',
     '30123456',
     'merchant@baraka.app',
-    '$2a$10$LqGh7.N7tmR6X7yJvQdQr.VqQYWnLF.5S9VqJT6J5YxX7V5Y5KQWC',
+    '$2b$10$rWF/3luhXo8HvwHtjIImnukVULidzaN3PTYDMUWomFaLQQzpxTo9m',
     'MERCHANT',
     true,
     NOW()
 )
 ON CONFLICT (id) DO NOTHING;
 
--- BCrypt hash for "Customer@123" (strength 10)
+-- BCrypt hash for "1234" (strength 10)
 -- Insert a sample customer user (for testing)
 INSERT INTO users (id, full_name, phone, email, password_hash, role, is_active, created_at)
 VALUES (
@@ -41,7 +41,7 @@ VALUES (
     'Customer Demo',
     '40123456',
     'customer@baraka.app',
-    '$2a$10$LqGh7.N7tmR6X7yJvQdQr.VqQYWnLF.5S9VqJT6J5YxX7V5Y5KQWC',
+    '$2b$10$rWF/3luhXo8HvwHtjIImnukVULidzaN3PTYDMUWomFaLQQzpxTo9m',
     'CUSTOMER',
     true,
     NOW()
