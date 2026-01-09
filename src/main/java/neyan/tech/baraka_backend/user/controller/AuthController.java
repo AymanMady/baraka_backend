@@ -76,6 +76,9 @@ public class AuthController {
     })
     @GetMapping("/me")
     public ResponseEntity<UserDto> getCurrentUser(@CurrentUser UserPrincipal currentUser) {
+        if (currentUser == null) {
+            throw new RuntimeException("User not authenticated");
+        }
         User user = userRepository.findById(currentUser.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return ResponseEntity.ok(userMapper.toDto(user));
