@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import neyan.tech.baraka_backend.basket.dto.BasketResponse;
 import neyan.tech.baraka_backend.basket.dto.CreateBasketRequest;
 import neyan.tech.baraka_backend.basket.dto.UpdateBasketRequest;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/merchant")
 @RequiredArgsConstructor
@@ -42,9 +44,24 @@ public class MerchantBasketController {
             @PathVariable UUID shopId,
             @Valid @RequestBody CreateBasketRequest request,
             @CurrentUser UserPrincipal currentUser) {
-        request.setShopId(shopId);
-        BasketResponse response = basketService.createBasket(request, currentUser.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        try {
+            log.info("Received basket creation request for shop: {} from user: {}", shopId, currentUser.getId());
+            log.debug("Request data: title={}, priceOriginal={}, priceDiscount={}, quantityTotal={}, pickupStart={}, pickupEnd={}",
+                    request.getTitle(), request.getPriceOriginal(), request.getPriceDiscount(),
+                    request.getQuantityTotal(), request.getPickupStart(), request.getPickupEnd());
+            
+            request.setShopId(shopId);
+            BasketResponse response = basketService.createBasket(request, currentUser.getId());
+            
+            log.info("Basket created successfully with id: {} for shop: {}", response.getId(), shopId);
+            log.debug("Response basket: id={}, shopId={}, shop={}", response.getId(), response.getShopId(), response.getShop());
+            
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception ex) {
+            log.error("Error creating basket for shop: {} by user: {}", shopId, currentUser.getId(), ex);
+            // Re-throw to let GlobalExceptionHandler handle it
+            throw ex;
+        }
     }
 
     @Operation(summary = "Get my baskets for a shop", description = "Returns all baskets for a shop")

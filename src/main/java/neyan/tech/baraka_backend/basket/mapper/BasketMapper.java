@@ -26,7 +26,7 @@ public interface BasketMapper {
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "currency", defaultValue = "XOF")
+    @Mapping(target = "currency", defaultValue = "MRU")
     Basket toEntity(CreateBasketRequest request);
 
     @Mapping(target = "shopId", source = "shop.id")

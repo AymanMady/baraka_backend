@@ -102,7 +102,7 @@ CREATE TABLE baskets (
     description     TEXT,
     price_original  NUMERIC(10, 2) NOT NULL,
     price_discount  NUMERIC(10, 2) NOT NULL,
-    currency        VARCHAR(3) NOT NULL DEFAULT 'XOF',
+    currency        VARCHAR(3) NOT NULL DEFAULT 'MRU',
     quantity_total  INTEGER NOT NULL,
     quantity_left   INTEGER NOT NULL,
     pickup_start    TIMESTAMPTZ NOT NULL,

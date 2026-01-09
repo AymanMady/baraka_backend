@@ -135,7 +135,7 @@ class OrderServiceTest {
                 .title("Test Basket")
                 .priceOriginal(BigDecimal.valueOf(5000))
                 .priceDiscount(BigDecimal.valueOf(2500))
-                .currency("XOF")
+                .currency("MRU")
                 .quantityTotal(10)
                 .quantityLeft(5)
                 .pickupStart(Instant.now().plus(2, ChronoUnit.HOURS))

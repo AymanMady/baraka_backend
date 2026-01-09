@@ -410,3 +410,7 @@ MIT © Neyan Tech
 3. Commit (`git commit -m 'Add amazing feature'`)
 4. Push (`git push origin feature/amazing-feature`)
 5. Ouvrir une Pull Request
+
+
+Pour recreer les seeders
+FLYWAY_CLEAN_ON_STARTUP=true FLYWAY_CLEAN_DISABLED=false docker compose up -d --build app

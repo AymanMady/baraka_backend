@@ -75,7 +75,7 @@ public class Basket {
     @Size(max = 3)
     @Column(name = "currency", nullable = false, length = 3)
     @Builder.Default
-    private String currency = "XOF";
+    private String currency = "MRU";
 
     @NotNull
     @Min(1)

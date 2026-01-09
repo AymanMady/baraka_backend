@@ -36,31 +36,96 @@ public class BasketService {
 
     @Transactional
     public BasketResponse createBasket(CreateBasketRequest request, UUID merchantId) {
-        log.info("Creating basket for shop: {}", request.getShopId());
+        log.info("Creating basket for shop: {} by merchant: {}", request.getShopId(), merchantId);
 
         Shop shop = shopService.findShopOrThrow(request.getShopId());
+        log.debug("Shop found: {} with status: {}", shop.getId(), shop.getStatus());
+        
         shopService.checkShopOwnership(shop, merchantId);
 
         if (shop.getStatus() != ShopStatus.ACTIVE) {
+            log.warn("Attempted to create basket for non-active shop: {} with status: {}", shop.getId(), shop.getStatus());
             throw new BadRequestException("Cannot create basket for non-active shop");
         }
 
         validateBasketTimes(request.getPickupStart(), request.getPickupEnd());
         validateBasketPrices(request.getPriceOriginal(), request.getPriceDiscount());
+        log.debug("Basket validation passed for shop: {}", request.getShopId());
 
         Basket basket = basketMapper.toEntity(request);
         basket.setShop(shop);
         basket.setQuantityLeft(request.getQuantityTotal());
         basket.setStatus(BasketStatus.DRAFT);
 
+        // Ensure currency is set correctly (override mapper default if needed)
         if (request.getCurrency() == null || request.getCurrency().isBlank()) {
-            basket.setCurrency("XOF");
+            basket.setCurrency("MRU");
+            log.debug("Currency set to default: MRU");
+        } else {
+            basket.setCurrency(request.getCurrency());
+        }
+        
+        // Ensure shop entity is properly initialized for mapping
+        // The shop should already be loaded, but verify basic fields are accessible
+        log.debug("Shop entity loaded - id: {}, name: {}, city: {}, status: {}", 
+                shop.getId(), shop.getName(), shop.getCity(), shop.getStatus());
+
+        // Verify basket entity is properly initialized before saving
+        if (basket.getShop() == null) {
+            log.error("Shop is null in basket before save for shop: {}", shop.getId());
+            throw new BadRequestException("Shop must be set on basket");
+        }
+        
+        try {
+            log.debug("Attempting to save basket with title: {}, priceOriginal: {}, priceDiscount: {}, pickupStart: {}, pickupEnd: {}, shopId: {}", 
+                    basket.getTitle(), basket.getPriceOriginal(), basket.getPriceDiscount(), 
+                    basket.getPickupStart(), basket.getPickupEnd(), basket.getShop().getId());
+            basket = basketRepository.save(basket);
+            log.info("Basket created successfully with id: {} for shop: {}", basket.getId(), shop.getId());
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            log.error("Data integrity violation when saving basket for shop: {}. Error: {}", shop.getId(), ex.getMessage(), ex);
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Failed to save basket for shop: {}. Exception type: {}, Error: {}", 
+                    shop.getId(), ex.getClass().getName(), ex.getMessage(), ex);
+            throw ex;
         }
 
-        basket = basketRepository.save(basket);
-        log.info("Basket created with id: {}", basket.getId());
-
-        return basketMapper.toResponse(basket);
+        try {
+            log.debug("Mapping basket to response for basket id: {}", basket.getId());
+            
+            // Ensure shop entity is still accessible and fully loaded
+            Shop basketShop = basket.getShop();
+            if (basketShop == null) {
+                log.error("Shop is null in basket after save. Basket id: {}", basket.getId());
+                throw new BadRequestException("Shop relationship lost after save");
+            }
+            
+            // Access shop properties to ensure they're loaded (prevent lazy loading issues)
+            log.debug("Shop details - id: {}, name: {}, city: {}, status: {}", 
+                    basketShop.getId(), basketShop.getName(), basketShop.getCity(), basketShop.getStatus());
+            
+            BasketResponse response = basketMapper.toResponse(basket);
+            log.debug("Successfully mapped basket to response for basket id: {}", basket.getId());
+            
+            // Verify response is valid
+            if (response == null) {
+                log.error("BasketResponse is null after mapping for basket id: {}", basket.getId());
+                throw new IllegalStateException("Failed to map basket to response");
+            }
+            
+            log.debug("Response created successfully - basket id: {}, shop id: {}", 
+                    response.getId(), response.getShopId());
+            
+            return response;
+        } catch (org.hibernate.LazyInitializationException ex) {
+            log.error("Lazy initialization exception when mapping basket id: {}. Error: {}", basket.getId(), ex.getMessage(), ex);
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Failed to map basket to response for basket id: {}. Exception type: {}, Error: {}", 
+                    basket.getId(), ex.getClass().getName(), ex.getMessage(), ex);
+            throw ex;
+        }
     }
 
     @Transactional(readOnly = true)
@@ -241,18 +306,43 @@ public class BasketService {
     // ==================== Validation ====================
 
     private void validateBasketTimes(Instant pickupStart, Instant pickupEnd) {
-        if (pickupStart != null && pickupEnd != null) {
-            if (!pickupEnd.isAfter(pickupStart)) {
-                throw new BadRequestException("Pickup end must be after pickup start");
-            }
+        if (pickupStart == null || pickupEnd == null) {
+            throw new BadRequestException("Pickup start and end times are required");
+        }
+        
+        Instant now = Instant.now();
+        
+        // Check if pickup start is in the future
+        if (!pickupStart.isAfter(now)) {
+            throw new BadRequestException("Pickup start time must be in the future");
+        }
+        
+        // Check if pickup end is after pickup start
+        if (!pickupEnd.isAfter(pickupStart)) {
+            throw new BadRequestException("Pickup end must be after pickup start");
+        }
+        
+        // Check if pickup end is in the future
+        if (!pickupEnd.isAfter(now)) {
+            throw new BadRequestException("Pickup end time must be in the future");
         }
     }
 
     private void validateBasketPrices(java.math.BigDecimal original, java.math.BigDecimal discount) {
-        if (original != null && discount != null) {
-            if (discount.compareTo(original) > 0) {
-                throw new BadRequestException("Discount price cannot be greater than original price");
-            }
+        if (original == null || discount == null) {
+            throw new BadRequestException("Both original and discount prices are required");
+        }
+        
+        if (original.compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            throw new BadRequestException("Original price must be greater than zero");
+        }
+        
+        if (discount.compareTo(java.math.BigDecimal.ZERO) < 0) {
+            throw new BadRequestException("Discount price cannot be negative");
+        }
+        
+        if (discount.compareTo(original) > 0) {
+            throw new BadRequestException("Discount price cannot be greater than original price");
         }
     }
 }

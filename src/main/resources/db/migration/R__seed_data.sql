@@ -75,7 +75,7 @@ VALUES (
     'Un assortiment de croissants, pains au chocolat et autres délices de la journée.',
     5000.00,
     2500.00,
-    'XOF',
+    'MRU',
     10,
     10,
     NOW() + INTERVAL '1 hour',
