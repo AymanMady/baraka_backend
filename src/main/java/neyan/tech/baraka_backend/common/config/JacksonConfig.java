@@ -3,14 +3,14 @@ package neyan.tech.baraka_backend.common.config;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -79,22 +79,27 @@ public class JacksonConfig {
         }
     }
 
+    /**
+     * Customize Jackson ObjectMapper to use lenient Instant deserializer.
+     * This approach works with Spring Boot's auto-configuration.
+     * Our custom deserializer will override the default one from JavaTimeModule.
+     */
     @Bean
-    @Primary
-    public ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder) {
-        ObjectMapper mapper = builder.build();
-        
-        // Configure JavaTimeModule with custom Instant deserializer
-        JavaTimeModule javaTimeModule = new JavaTimeModule();
-        javaTimeModule.addDeserializer(Instant.class, new LenientInstantDeserializer());
-        
-        mapper.registerModule(javaTimeModule);
-        
-        // Configure additional features
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        
-        return mapper;
+    public Jackson2ObjectMapperBuilderCustomizer jsonCustomizer() {
+        return builder -> {
+            // Create a SimpleModule with our lenient Instant deserializer
+            // This will override the default Instant deserializer from JavaTimeModule
+            SimpleModule customModule = new SimpleModule("LenientInstantModule");
+            customModule.addDeserializer(Instant.class, new LenientInstantDeserializer());
+            
+            // Add the custom module after the default modules are installed
+            // Our deserializer will take precedence over the default one
+            builder.modulesToInstall(customModule);
+            
+            // Configure additional features
+            builder.featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+            builder.featuresToDisable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        };
     }
 }
 
