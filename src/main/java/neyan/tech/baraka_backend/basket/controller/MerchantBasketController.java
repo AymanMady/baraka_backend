@@ -22,7 +22,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -107,6 +109,33 @@ public class MerchantBasketController {
             @CurrentUser UserPrincipal currentUser) {
         basketService.deleteBasket(id, currentUser.getId());
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Upload basket images", description = "Uploads one or more images for a basket")
+    @PostMapping(value = "/baskets/{id}/images", consumes = "multipart/form-data")
+    public ResponseEntity<BasketResponse> uploadBasketImages(
+            @PathVariable UUID id,
+            @RequestPart("files") MultipartFile[] files,
+            @CurrentUser UserPrincipal currentUser) {
+        try {
+            log.info("Received image upload request for basket: {} from user: {}, files: {}", id, currentUser.getId(), files.length);
+            BasketResponse response = basketService.uploadBasketImages(id, files, currentUser.getId());
+            log.info("Images uploaded successfully for basket: {}", id);
+            return ResponseEntity.ok(response);
+        } catch (Exception ex) {
+            log.error("Error uploading images for basket: {} by user: {}", id, currentUser.getId(), ex);
+            throw ex;
+        }
+    }
+
+    @Operation(summary = "Delete basket image", description = "Deletes a specific image from a basket")
+    @DeleteMapping("/baskets/{id}/images/{imageId}")
+    public ResponseEntity<BasketResponse> deleteBasketImage(
+            @PathVariable UUID id,
+            @PathVariable UUID imageId,
+            @CurrentUser UserPrincipal currentUser) {
+        BasketResponse response = basketService.removeImageFromBasket(id, imageId, currentUser.getId());
+        return ResponseEntity.ok(response);
     }
 }
 

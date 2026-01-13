@@ -9,6 +9,8 @@ import neyan.tech.baraka_backend.shop.dto.ShopSummaryResponse;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -35,5 +37,9 @@ public class BasketResponse {
 
     // Computed
     private BigDecimal discountPercentage;
+
+    // Images
+    @Builder.Default
+    private List<String> imageUrls = new ArrayList<>();
 }
 

@@ -4,6 +4,7 @@ import neyan.tech.baraka_backend.basket.dto.BasketResponse;
 import neyan.tech.baraka_backend.basket.dto.CreateBasketRequest;
 import neyan.tech.baraka_backend.basket.dto.UpdateBasketRequest;
 import neyan.tech.baraka_backend.basket.entity.Basket;
+import neyan.tech.baraka_backend.basket.entity.BasketImage;
 import neyan.tech.baraka_backend.shop.mapper.ShopMapper;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.BeanMapping;
@@ -16,6 +17,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING, uses = {ShopMapper.class})
 public interface BasketMapper {
@@ -32,6 +34,7 @@ public interface BasketMapper {
     @Mapping(target = "shopId", source = "shop.id")
     @Mapping(target = "shop", source = "shop")
     @Mapping(target = "discountPercentage", ignore = true)
+    @Mapping(target = "imageUrls", ignore = true)
     BasketResponse toResponse(Basket basket);
 
     List<BasketResponse> toResponseList(List<Basket> baskets);
@@ -52,6 +55,15 @@ public interface BasketMapper {
             BigDecimal percentage = discount.multiply(BigDecimal.valueOf(100))
                     .divide(basket.getPriceOriginal(), 2, RoundingMode.HALF_UP);
             response.setDiscountPercentage(percentage);
+        }
+
+        // Map images to URLs
+        if (basket.getImages() != null && !basket.getImages().isEmpty()) {
+            List<String> imageUrls = basket.getImages().stream()
+                    .sorted((a, b) -> Integer.compare(a.getDisplayOrder(), b.getDisplayOrder()))
+                    .map(BasketImage::getImageUrl)
+                    .collect(Collectors.toList());
+            response.setImageUrls(imageUrls);
         }
     }
 }

@@ -39,6 +39,7 @@ public class SecurityConfig {
     private static final String[] PUBLIC_ENDPOINTS = {
             "/api/auth/**",
             "/api/nearby/**",   // Public geo endpoints
+            "/api/files/**",    // Public file access
             "/api-docs/**",
             "/api-docs.yaml",
             "/v3/api-docs/**",

@@ -6,9 +6,13 @@ import neyan.tech.baraka_backend.basket.dto.BasketResponse;
 import neyan.tech.baraka_backend.basket.dto.CreateBasketRequest;
 import neyan.tech.baraka_backend.basket.dto.UpdateBasketRequest;
 import neyan.tech.baraka_backend.basket.entity.Basket;
+import neyan.tech.baraka_backend.basket.entity.BasketImage;
 import neyan.tech.baraka_backend.basket.entity.BasketStatus;
 import neyan.tech.baraka_backend.basket.mapper.BasketMapper;
+import neyan.tech.baraka_backend.basket.repository.BasketImageRepository;
 import neyan.tech.baraka_backend.basket.repository.BasketRepository;
+import neyan.tech.baraka_backend.common.exception.NotFoundException;
+import neyan.tech.baraka_backend.common.service.ImageStorageService;
 import neyan.tech.baraka_backend.common.exception.BadRequestException;
 import neyan.tech.baraka_backend.common.exception.ForbiddenException;
 import neyan.tech.baraka_backend.common.exception.NotFoundException;
@@ -20,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.List;
@@ -31,8 +36,10 @@ import java.util.UUID;
 public class BasketService {
 
     private final BasketRepository basketRepository;
+    private final BasketImageRepository basketImageRepository;
     private final BasketMapper basketMapper;
     private final ShopService shopService;
+    private final ImageStorageService imageStorageService;
 
     @Transactional
     public BasketResponse createBasket(CreateBasketRequest request, UUID merchantId) {
@@ -131,6 +138,8 @@ public class BasketService {
     @Transactional(readOnly = true)
     public BasketResponse getBasketById(UUID basketId) {
         Basket basket = findBasketOrThrow(basketId);
+        // Load images eagerly for response
+        basket.getImages().size(); // Force lazy loading
         return basketMapper.toResponse(basket);
     }
 
@@ -240,8 +249,68 @@ public class BasketService {
             throw new BadRequestException("Cannot delete a published basket. Unpublish it first.");
         }
 
+        // Delete image files
+        imageStorageService.deleteBasketImages(basketId);
+
         basketRepository.delete(basket);
         log.info("Basket deleted: {}", basketId);
+    }
+
+    @Transactional
+    public BasketResponse addImagesToBasket(UUID basketId, List<String> imageUrls, UUID merchantId) {
+        Basket basket = findBasketOrThrow(basketId);
+        shopService.checkShopOwnership(basket.getShop(), merchantId);
+
+        int displayOrder = basket.getImages().size();
+        for (String imageUrl : imageUrls) {
+            BasketImage image = BasketImage.builder()
+                    .basket(basket)
+                    .imageUrl(imageUrl)
+                    .displayOrder(displayOrder++)
+                    .build();
+            basketImageRepository.save(image);
+        }
+
+        basket = basketRepository.findById(basketId).orElseThrow();
+        basket.getImages().size(); // Force lazy loading
+        log.info("Added {} images to basket {}", imageUrls.size(), basketId);
+        return basketMapper.toResponse(basket);
+    }
+
+    @Transactional
+    public BasketResponse removeImageFromBasket(UUID basketId, UUID imageId, UUID merchantId) {
+        Basket basket = findBasketOrThrow(basketId);
+        shopService.checkShopOwnership(basket.getShop(), merchantId);
+
+        BasketImage image = basketImageRepository.findById(imageId)
+                .orElseThrow(() -> new NotFoundException("BasketImage", imageId));
+
+        if (!image.getBasket().getId().equals(basketId)) {
+            throw new BadRequestException("Image does not belong to this basket");
+        }
+
+        // Delete file
+        imageStorageService.deleteImage(image.getImageUrl());
+
+        // Delete from database
+        basketImageRepository.delete(image);
+
+        basket = basketRepository.findById(basketId).orElseThrow();
+        basket.getImages().size(); // Force lazy loading
+        log.info("Removed image {} from basket {}", imageId, basketId);
+        return basketMapper.toResponse(basket);
+    }
+
+    @Transactional
+    public BasketResponse uploadBasketImages(UUID basketId, MultipartFile[] files, UUID merchantId) {
+        Basket basket = findBasketOrThrow(basketId);
+        shopService.checkShopOwnership(basket.getShop(), merchantId);
+
+        // Store images and get URLs
+        List<String> imageUrls = imageStorageService.storeBasketImages(basketId, files);
+
+        // Save image records
+        return addImagesToBasket(basketId, imageUrls, merchantId);
     }
 
     // ==================== Internal Methods ====================

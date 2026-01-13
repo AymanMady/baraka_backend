@@ -56,6 +56,11 @@ baraka:
   basket:
     max-quantity-per-order: 5
 
+# File Upload Configuration
+file:
+  upload:
+    dir: ${FILE_UPLOAD_DIR:${user.home}/baraka/uploads}
+
 ---
 # Development Profile
 spring:
