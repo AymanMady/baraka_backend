@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -115,7 +116,7 @@ public class MerchantBasketController {
     @PostMapping(value = "/baskets/{id}/images", consumes = "multipart/form-data")
     public ResponseEntity<BasketResponse> uploadBasketImages(
             @PathVariable UUID id,
-            @RequestPart("files") MultipartFile[] files,
+            @RequestParam("files") MultipartFile[] files,
             @CurrentUser UserPrincipal currentUser) {
         try {
             log.info("Received image upload request for basket: {} from user: {}, files: {}", id, currentUser.getId(), files.length);
