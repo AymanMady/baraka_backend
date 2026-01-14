@@ -42,6 +42,12 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     @Query("SELECT o FROM Order o WHERE o.status = 'RESERVED' AND o.basket.pickupEnd < :now")
     List<Order> findExpiredReservations(@Param("now") Instant now);
 
+    @Query("SELECT o FROM Order o " +
+           "LEFT JOIN FETCH o.basket b " +
+           "LEFT JOIN FETCH b.shop " +
+           "WHERE o.id = :id")
+    Optional<Order> findByIdWithBasketAndShop(@Param("id") UUID id);
+
     boolean existsByPickupCode(String pickupCode);
 }
 

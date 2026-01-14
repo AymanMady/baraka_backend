@@ -117,7 +117,7 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public OrderResponse getOrderById(UUID orderId, UUID userId) {
-        Order order = findOrderOrThrow(orderId);
+        Order order = findOrderWithDetailsOrThrow(orderId);
         checkOrderAccess(order, userId);
         return orderMapper.toResponse(order);
     }
@@ -278,6 +278,14 @@ public class OrderService {
 
     public Order findOrderOrThrow(UUID orderId) {
         return orderRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException("Order", orderId));
+    }
+
+    /**
+     * Find order by ID with basket and shop eagerly loaded
+     */
+    public Order findOrderWithDetailsOrThrow(UUID orderId) {
+        return orderRepository.findByIdWithBasketAndShop(orderId)
                 .orElseThrow(() -> new NotFoundException("Order", orderId));
     }
 
