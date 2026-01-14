@@ -26,16 +26,16 @@ FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
 # Create non-root user for security
-RUN addgroup -S baraka && adduser -S baraka -G baraka
+RUN addgroup -S ni3ma && adduser -S ni3ma -G ni3ma
 
 # Copy the built artifact from build stage
 COPY --from=build /app/target/*.jar app.jar
 
 # Set ownership
-RUN chown -R baraka:baraka /app
+RUN chown -R ni3ma:ni3ma /app
 
 # Switch to non-root user
-USER baraka
+USER ni3ma
 
 # Expose the application port
 EXPOSE 8080

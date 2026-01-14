@@ -2,30 +2,30 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
-    container_name: baraka-postgres
+    container_name: ni3ma-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-baraka_db}
-      POSTGRES_USER: ${POSTGRES_USER:-baraka_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-baraka_password}
+      POSTGRES_DB: ${POSTGRES_DB:-ni3ma_db}
+      POSTGRES_USER: ${POSTGRES_USER:-ni3ma_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ni3ma_password}
     ports:
       - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-baraka_user} -d ${POSTGRES_DB:-baraka_db}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ni3ma_user} -d ${POSTGRES_DB:-ni3ma_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - baraka-network
+      - ni3ma-network
 
   # Spring Boot Application
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: baraka-backend
+    container_name: ni3ma-backend
     restart: unless-stopped
     depends_on:
       postgres:
@@ -35,9 +35,9 @@ services:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
       
       # Database Configuration
-      DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-baraka_db}
-      DATABASE_USERNAME: ${POSTGRES_USER:-baraka_user}
-      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-baraka_password}
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-ni3ma_db}
+      DATABASE_USERNAME: ${POSTGRES_USER:-ni3ma_user}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-ni3ma_password}
       
       # Flyway Configuration (for dev: clean database on startup to re-run seeders)
       # Set FLYWAY_CLEAN_ON_STARTUP=true and FLYWAY_CLEAN_DISABLED=false to enable auto-clean
@@ -55,12 +55,12 @@ services:
     ports:
       - "${APP_PORT:-8080}:8080"
     networks:
-      - baraka-network
+      - ni3ma-network
 
   # PgAdmin (optional - for database management)
   pgadmin:
     image: dpage/pgadmin4:latest
-    container_name: baraka-pgadmin
+    container_name: ni3ma-pgadmin
     restart: unless-stopped
     profiles:
       - tools
@@ -75,10 +75,10 @@ services:
     depends_on:
       - postgres
     networks:
-      - baraka-network
+      - ni3ma-network
 
 networks:
-  baraka-network:
+  ni3ma-network:
     driver: bridge
 
 volumes:

@@ -1,6 +1,6 @@
 spring:
   application:
-    name: baraka-backend
+    name: ni3ma-backend
 
   profiles:
     active: dev
@@ -56,8 +56,8 @@ jwt:
   expiration: 86400000
   refresh-expiration: 604800000
 
-# Baraka Business Configuration
-baraka:
+# Ni3ma Business Configuration
+ni3ma:
   order:
     cancel-cutoff-minutes: ${CANCEL_CUTOFF_MINUTES:30}
     pickup-code-length: 6
@@ -67,7 +67,7 @@ baraka:
 # File Upload Configuration
 file:
   upload:
-    dir: ${FILE_UPLOAD_DIR:${user.home}/baraka/uploads}
+    dir: ${FILE_UPLOAD_DIR:${user.home}/ni3ma/uploads}
 
 ---
 # Development Profile
@@ -77,9 +77,9 @@ spring:
       on-profile: dev
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/baraka_dev
-    username: baraka_user
-    password: baraka_password
+    url: jdbc:postgresql://localhost:5432/ni3ma_dev
+    username: ni3ma_user
+    password: ni3ma_password
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
@@ -97,7 +97,7 @@ spring:
 logging:
   level:
     root: INFO
-    neyan.tech.baraka_backend: DEBUG
+    neyan.tech.ni3ma_backend: DEBUG
     org.springframework.security: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
@@ -130,7 +130,7 @@ spring:
 logging:
   level:
     root: WARN
-    neyan.tech.baraka_backend: INFO
+    neyan.tech.ni3ma_backend: INFO
 
 server:
   error:

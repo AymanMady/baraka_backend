@@ -1,6 +1,6 @@
-# 🥙 Baraka Backend
+# 🥙 Ni3ma Backend
 
-Backend API pour **Baraka**, une application anti-gaspillage alimentaire permettant aux commerçants de vendre leurs invendus à prix réduit.
+Backend API pour **Ni3ma**, une application anti-gaspillage alimentaire permettant aux commerçants de vendre leurs invendus à prix réduit.
 
 ## 📋 Table des matières
 
@@ -69,14 +69,14 @@ open http://localhost:8080/swagger-ui.html
 
 ```bash
 # 1. Démarrer PostgreSQL localement
-# Créer une base de données: baraka_dev
+    # Créer une base de données: ni3ma_dev
 
 # 2. Lancer l'application en mode dev
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 
 # Ou compiler et lancer
 ./mvnw clean package -DskipTests
-java -jar target/baraka-backend-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev
+java -jar target/ni3ma-backend-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev
 ```
 
 ---
@@ -350,8 +350,8 @@ curl http://localhost:8080/actuator/health
 ## 📁 Structure du projet
 
 ```
-src/main/java/neyan/tech/baraka_backend/
-├── BarakaBackendApplication.java
+src/main/java/neyan/tech/ni3ma_backend/
+├── Ni3maBackendApplication.java
 ├── common/
 │   ├── config/          # Configuration Spring, Properties
 │   ├── exception/       # Exceptions personnalisées

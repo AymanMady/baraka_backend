@@ -12,10 +12,10 @@
     </parent>
 
     <groupId>neyan.tech</groupId>
-    <artifactId>baraka-backend</artifactId>
+    <artifactId>ni3ma-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>baraka-backend</name>
-    <description>Baraka Backend - Spring Boot Application</description>
+    <name>ni3ma-backend</name>
+    <description>Ni3ma Backend - Spring Boot Application</description>
 
     <properties>
         <java.version>17</java.version>
