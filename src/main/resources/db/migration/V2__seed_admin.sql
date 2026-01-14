@@ -53,7 +53,7 @@ VALUES (
 ON CONFLICT (id) DO NOTHING;
 
 -- Insert a sample shop for the merchant (idempotent)
-INSERT INTO shops (id, name, description, phone, address, city, country, latitude, longitude, status, created_by, created_at)
+INSERT INTO shops (id, name, description, phone, address, city, latitude, longitude, status, created_by, created_at)
 VALUES (
     'b0000000-0000-0000-0000-000000000001',
     'Boulangerie Demo',
@@ -61,7 +61,6 @@ VALUES (
     '50123456',
     '123 Rue de la Paix',
     'Cotonou',
-    'Benin',
     6.3703,
     2.3912,
     'ACTIVE',

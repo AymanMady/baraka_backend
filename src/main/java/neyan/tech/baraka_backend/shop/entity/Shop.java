@@ -66,10 +66,6 @@ public class Shop {
     @Column(name = "city", length = 100)
     private String city;
 
-    @Size(max = 100)
-    @Column(name = "country", length = 100)
-    private String country;
-
     @Column(name = "latitude", precision = 10, scale = 8)
     private BigDecimal latitude;
 

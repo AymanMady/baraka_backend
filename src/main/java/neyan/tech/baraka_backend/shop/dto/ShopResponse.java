@@ -22,7 +22,6 @@ public class ShopResponse {
     private String phone;
     private String address;
     private String city;
-    private String country;
     private BigDecimal latitude;
     private BigDecimal longitude;
     private ShopStatus status;
