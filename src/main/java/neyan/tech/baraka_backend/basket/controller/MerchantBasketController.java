@@ -119,11 +119,24 @@ public class MerchantBasketController {
             @CurrentUser UserPrincipal currentUser) {
         try {
             log.info("Received image upload request for basket: {} from user: {}, files: {}", id, currentUser.getId(), files.length);
+            
+            // Detailed logging for debugging
+            if (files != null && files.length > 0) {
+                for (int i = 0; i < files.length; i++) {
+                    MultipartFile file = files[i];
+                    log.debug("File {}: name={}, size={}, contentType={}, isEmpty={}", 
+                        i, file.getOriginalFilename(), file.getSize(), file.getContentType(), file.isEmpty());
+                }
+            } else {
+                log.warn("Files array is null or empty");
+            }
+            
             BasketResponse response = basketService.uploadBasketImages(id, files, currentUser.getId());
             log.info("Images uploaded successfully for basket: {}", id);
             return ResponseEntity.ok(response);
         } catch (Exception ex) {
             log.error("Error uploading images for basket: {} by user: {}", id, currentUser.getId(), ex);
+            log.error("Exception type: {}, message: {}", ex.getClass().getName(), ex.getMessage(), ex);
             throw ex;
         }
     }

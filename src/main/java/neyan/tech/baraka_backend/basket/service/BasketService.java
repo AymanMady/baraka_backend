@@ -258,23 +258,51 @@ public class BasketService {
 
     @Transactional
     public BasketResponse addImagesToBasket(UUID basketId, List<String> imageUrls, UUID merchantId) {
-        Basket basket = findBasketOrThrow(basketId);
-        shopService.checkShopOwnership(basket.getShop(), merchantId);
+        log.debug("addImagesToBasket called - basketId: {}, imageUrls count: {}", basketId, imageUrls.size());
+        
+        try {
+            Basket basket = findBasketOrThrow(basketId);
+            log.debug("Basket found: {}", basketId);
+            
+            shopService.checkShopOwnership(basket.getShop(), merchantId);
+            log.debug("Shop ownership verified");
 
-        int displayOrder = basket.getImages().size();
-        for (String imageUrl : imageUrls) {
-            BasketImage image = BasketImage.builder()
-                    .basket(basket)
-                    .imageUrl(imageUrl)
-                    .displayOrder(displayOrder++)
-                    .build();
-            basketImageRepository.save(image);
+            int displayOrder = basket.getImages().size();
+            log.debug("Current images count: {}, starting displayOrder: {}", basket.getImages().size(), displayOrder);
+            
+            for (String imageUrl : imageUrls) {
+                try {
+                    BasketImage image = BasketImage.builder()
+                            .basket(basket)
+                            .imageUrl(imageUrl)
+                            .displayOrder(displayOrder++)
+                            .build();
+                    basketImageRepository.save(image);
+                    log.debug("Saved image: {}", imageUrl);
+                } catch (Exception ex) {
+                    log.error("Failed to save image: {}, error: {}", imageUrl, ex.getMessage(), ex);
+                    throw ex;
+                }
+            }
+
+            basket = basketRepository.findById(basketId).orElseThrow();
+            basket.getImages().size(); // Force lazy loading
+            log.debug("Forced lazy loading of images");
+            
+            log.info("Added {} images to basket {}", imageUrls.size(), basketId);
+            
+            try {
+                BasketResponse response = basketMapper.toResponse(basket);
+                log.debug("Basket mapped to response successfully");
+                return response;
+            } catch (Exception ex) {
+                log.error("Failed to map basket to response - basketId: {}, error: {}", basketId, ex.getMessage(), ex);
+                throw ex;
+            }
+        } catch (Exception ex) {
+            log.error("Exception in addImagesToBasket - basketId: {}, error: {}", basketId, ex.getMessage(), ex);
+            throw ex;
         }
-
-        basket = basketRepository.findById(basketId).orElseThrow();
-        basket.getImages().size(); // Force lazy loading
-        log.info("Added {} images to basket {}", imageUrls.size(), basketId);
-        return basketMapper.toResponse(basket);
     }
 
     @Transactional
@@ -303,14 +331,35 @@ public class BasketService {
 
     @Transactional
     public BasketResponse uploadBasketImages(UUID basketId, MultipartFile[] files, UUID merchantId) {
+        log.debug("uploadBasketImages called - basketId: {}, files count: {}, merchantId: {}", basketId, files != null ? files.length : 0, merchantId);
+        
         Basket basket = findBasketOrThrow(basketId);
+        log.debug("Basket found: {}", basketId);
+        
         shopService.checkShopOwnership(basket.getShop(), merchantId);
+        log.debug("Shop ownership verified");
 
         // Store images and get URLs
-        List<String> imageUrls = imageStorageService.storeBasketImages(basketId, files);
+        log.debug("Calling imageStorageService.storeBasketImages");
+        List<String> imageUrls;
+        try {
+            imageUrls = imageStorageService.storeBasketImages(basketId, files);
+            log.debug("Images stored successfully, count: {}", imageUrls.size());
+        } catch (Exception ex) {
+            log.error("Failed to store images in ImageStorageService - basketId: {}, error: {}", basketId, ex.getMessage(), ex);
+            throw ex;
+        }
 
         // Save image records
-        return addImagesToBasket(basketId, imageUrls, merchantId);
+        log.debug("Calling addImagesToBasket");
+        try {
+            BasketResponse response = addImagesToBasket(basketId, imageUrls, merchantId);
+            log.debug("addImagesToBasket completed successfully");
+            return response;
+        } catch (Exception ex) {
+            log.error("Failed in addImagesToBasket - basketId: {}, error: {}", basketId, ex.getMessage(), ex);
+            throw ex;
+        }
     }
 
     // ==================== Internal Methods ====================

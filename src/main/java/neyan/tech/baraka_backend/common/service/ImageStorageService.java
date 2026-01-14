@@ -40,16 +40,38 @@ public class ImageStorageService {
      * @return List of relative URLs for the stored images
      */
     public List<String> storeBasketImages(UUID basketId, MultipartFile[] files) {
+        log.debug("storeBasketImages called - basketId: {}, files: {}", basketId, files != null ? files.length : 0);
+        
         if (files == null || files.length == 0) {
+            log.error("No files provided for basket: {}", basketId);
             throw new BadRequestException("No files provided");
         }
 
         List<String> imageUrls = new ArrayList<>();
 
-        for (MultipartFile file : files) {
-            validateFile(file);
-            String imageUrl = storeBasketImage(basketId, file);
-            imageUrls.add(imageUrl);
+        for (int i = 0; i < files.length; i++) {
+            MultipartFile file = files[i];
+            log.debug("Processing file {} of {} - name: {}, size: {}, contentType: {}", 
+                i + 1, files.length, file.getOriginalFilename(), file.getSize(), file.getContentType());
+            
+            try {
+                validateFile(file);
+                log.debug("File {} validated successfully", i + 1);
+            } catch (Exception ex) {
+                log.error("File validation failed for file {} - name: {}, error: {}", 
+                    i + 1, file.getOriginalFilename(), ex.getMessage(), ex);
+                throw ex;
+            }
+            
+            try {
+                String imageUrl = storeBasketImage(basketId, file);
+                imageUrls.add(imageUrl);
+                log.debug("File {} stored successfully: {}", i + 1, imageUrl);
+            } catch (Exception ex) {
+                log.error("Failed to store file {} - name: {}, error: {}", 
+                    i + 1, file.getOriginalFilename(), ex.getMessage(), ex);
+                throw ex;
+            }
         }
 
         log.info("Stored {} images for basket {}", imageUrls.size(), basketId);
@@ -61,18 +83,35 @@ public class ImageStorageService {
      */
     private String storeBasketImage(UUID basketId, MultipartFile file) {
         try {
+            log.debug("storeBasketImage - basketId: {}, uploadDir: {}, filename: {}", basketId, uploadDir, file.getOriginalFilename());
+            
             // Create basket-specific directory
             Path basketDir = Paths.get(uploadDir, "baskets", basketId.toString());
-            Files.createDirectories(basketDir);
+            log.debug("Basket directory path: {}", basketDir);
+            
+            try {
+                Files.createDirectories(basketDir);
+                log.debug("Basket directory created/exists: {}", basketDir);
+            } catch (Exception ex) {
+                log.error("Failed to create basket directory: {}, error: {}", basketDir, ex.getMessage(), ex);
+                throw new BadRequestException("Failed to create directory: " + ex.getMessage());
+            }
 
             // Generate unique filename
             String originalFilename = file.getOriginalFilename();
             String extension = getFileExtension(originalFilename);
             String filename = UUID.randomUUID() + "." + extension;
             Path targetPath = basketDir.resolve(filename);
+            log.debug("Target path: {}", targetPath);
 
             // Copy file
-            Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+            try {
+                Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+                log.debug("File copied successfully to: {}", targetPath);
+            } catch (IOException e) {
+                log.error("Failed to copy file to: {}, error: {}", targetPath, e.getMessage(), e);
+                throw new BadRequestException("Failed to copy file: " + e.getMessage());
+            }
 
             // Return relative URL
             String imageUrl = String.format("/api/files/baskets/%s/%s", basketId, filename);
@@ -80,8 +119,14 @@ public class ImageStorageService {
 
             return imageUrl;
 
+        } catch (BadRequestException e) {
+            log.error("BadRequestException in storeBasketImage for basket {}", basketId, e);
+            throw e;
         } catch (IOException e) {
-            log.error("Failed to store image for basket {}", basketId, e);
+            log.error("IOException in storeBasketImage for basket {}", basketId, e);
+            throw new BadRequestException("Failed to store image: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Unexpected exception in storeBasketImage for basket {}", basketId, e);
             throw new BadRequestException("Failed to store image: " + e.getMessage());
         }
     }
