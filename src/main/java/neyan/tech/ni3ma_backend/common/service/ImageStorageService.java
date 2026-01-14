@@ -122,9 +122,6 @@ public class ImageStorageService {
         } catch (BadRequestException e) {
             log.error("BadRequestException in storeBasketImage for basket {}", basketId, e);
             throw e;
-        } catch (IOException e) {
-            log.error("IOException in storeBasketImage for basket {}", basketId, e);
-            throw new BadRequestException("Failed to store image: " + e.getMessage());
         } catch (Exception e) {
             log.error("Unexpected exception in storeBasketImage for basket {}", basketId, e);
             throw new BadRequestException("Failed to store image: " + e.getMessage());
