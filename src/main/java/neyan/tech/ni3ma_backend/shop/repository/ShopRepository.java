@@ -19,11 +19,21 @@ public interface ShopRepository extends JpaRepository<Shop, UUID> {
 
     List<Shop> findByCreatedById(UUID userId);
 
-    Page<Shop> findByStatus(ShopStatus status, Pageable pageable);
+    @Query(value = "SELECT s FROM Shop s LEFT JOIN FETCH s.createdBy WHERE s.status = :status",
+           countQuery = "SELECT COUNT(s) FROM Shop s WHERE s.status = :status")
+    Page<Shop> findByStatus(@Param("status") ShopStatus status, Pageable pageable);
 
-    Page<Shop> findByCity(String city, Pageable pageable);
+    @Query(value = "SELECT s FROM Shop s LEFT JOIN FETCH s.createdBy WHERE s.city = :city",
+           countQuery = "SELECT COUNT(s) FROM Shop s WHERE s.city = :city")
+    Page<Shop> findByCity(@Param("city") String city, Pageable pageable);
 
-    Page<Shop> findByCityAndStatus(String city, ShopStatus status, Pageable pageable);
+    @Query(value = "SELECT s FROM Shop s LEFT JOIN FETCH s.createdBy WHERE s.city = :city AND s.status = :status",
+           countQuery = "SELECT COUNT(s) FROM Shop s WHERE s.city = :city AND s.status = :status")
+    Page<Shop> findByCityAndStatus(@Param("city") String city, @Param("status") ShopStatus status, Pageable pageable);
+
+    @Query(value = "SELECT s FROM Shop s LEFT JOIN FETCH s.createdBy",
+           countQuery = "SELECT COUNT(s) FROM Shop s")
+    Page<Shop> findAll(Pageable pageable);
 
     @Query("SELECT s FROM Shop s WHERE s.status = :status AND s.city = :city ORDER BY s.createdAt DESC")
     List<Shop> findActiveShopsInCity(@Param("city") String city, @Param("status") ShopStatus status);
